@@ -1,0 +1,107 @@
+INTERNATIONALISASI TANGGAL
+<P>
+Artikel ini terinspirasi oleh sebuah upload yang mempunyai masalah dengan cara VB coba menyusun apakah tanggal adalah sah. 
+Upload itu dari orang Turki dan rupanya orang sana memakai tanda pemisah '.' untuk tanggal. VB ada agak tolerant sama banyaktanda pemisah '/\-' tetapi '.' membingungkannya. 
+Akibatnya ini upload itu gagal dalam kebayakan sistim. Tetapi dengan rutin-rutin berikut  koda Anda bisa jalan terus. 
+Ingat sama permasalahan internasionalisasi agak sulit untuk berubah sistimmu hanya untuk ujian pada hal ini jadi Anda harus percaya pada koda tentang hal ini, kecuali Anda punya beberapa komputer dengan setup lain. 
+Yang berikut berdasar pada  kode dalam Michael S. Kaplan's 'Internasionalizationwith Visual Basic' (c)2000 Sam Publishing. 
+Saya telah mempersingkatnya sedikit, melihat buku ini jika anda benar berkepentingan, Buku itu agak rinci dan baik tentang hal ini.
+<p>
+(Sebelum setiap Function ada nama Bahasa Indonesia yang terjemahkan nama function Bahasa Ingris. Kalau mau silahkan memakai nama itu dalam koda Anda supaya lebih mudah membacanya untuk orang lain disana ;)
+
+<pre>
+Private Const LOCALE_SDATE As Long = &H1D
+Private Const LOCALE_ILDATE As Long = &H22
+
+'Anda dapat bertemu banyak konstan lain 
+'di Help VB dibawah 'Locale Keterangan     '  Tak ada nilainya tetapi banyak keterangan.
+'atau di API viewer cari 'SETEMPAT_        '  Tak keterangan tetapi mempunya nilainya 			
+Private Declare Function GetLocaleInfo Lib "kernel32" Alias "GetLocaleInfoA" ( _
+  ByVal Locale As Long, _
+  ByVal LCType As Long, _
+  ByVal lpLCData As String, _
+  ByVal cchData As Long) As Long
+
+
+(DataLokalisasi)  
+
+Public Function LocalizationData(ByVal LData As Long) As String
+'rutin dasar untuk membaca data apa pun yang Anda cari
+'berdasar pada konstan yang Anda memberi ke parameter LDATA
+  Dim stBuff As String * 255
+  Dim Ret    As Long
+
+ Ret = GetLocaleInfo(1024, LData, ByVal stBuff, Len(stBuff))
+
+ If Ret Then
+  'untuk sistim UNICODE (WIN2K+)
+  LOCALIZATIONDATA = LEFT$(STBUFF, Ret - 1)
+  'Untuk sistim Ascii (Pra WIN2K)
+  'LOCALIZATIONDATA = LEFT$(STBUFF, Ret)
+  'Jika Anda tidak tentu memakai 'Break Point' dan memeriksa apakah
+  'ada akhlak Null pada variabel kembali atau tidak.
+  'Anda mau yang tak punya Null
+  'Anda bisa juga memakai Function yang menghapus Null
+    'LocalizationData =  StripNulls(Left$(stBuff, Ret))
+ End If
+
+End Function
+
+(PemisahTglSeTempat)
+
+Public Function LocalDateDiv() As String
+' memperoleh pemisah tanggal
+ LocalDateDiv = LocalizationData(LOCALE_SDATE)
+
+End Function
+
+(DMYSeTempat)
+
+Public Function LocalDMY() As Integer
+'memperoleh  DMY 
+'Kembalinya 0,1, atau 2
+'0 Bulan-Hari-Tahun
+'1 Hari-Bulan-Tahun
+'2 Tahun-Bulan-Hari
+ 
+LocalDMY = LocalizationData(LOCALE_ILDATE)
+ 
+End Function
+
+(HapusNull)
+
+Function StripNulls(strTest as string) as string
+StripNulls = Replace(strTest, vbNullString, "")
+End Function
+
+</pre>
+
+
+dan memakainya begini 
+
+<pre>
+(TanggalSah)
+
+Public Function RealDate(ByVal D As Integer, _
+                    ByVal M As Integer, _
+                    ByVal Y As Long) As Boolean
+
+
+ Select Case LocalDMY
+  Case 0 
+  RealDate=IsDate(Format$(M, "00") & LocalDateDiv & Format$(D, "00") & LocalDateDiv & Y)
+  Case 1 
+  RealDate=IsDate(Format$(D, "00") & LocalDateDiv & Format$(M, "00") & LocalDateDiv & Y)
+  Case 2 
+  RealDate=IsDate(Y & LocalDateDiv & Format$(M, "00") & LocalDateDiv & Format$(D, "00")
+ End Select
+
+End Function
+
+</pre>
+<P>
+Minta ma'af atas Bahasa saya. Silahkan kirim koreksi pada alamat email di bawah.
+<P>
+(C)2003 Roger Gilchrist 
+<P>
+email: rojagilkrist@hotmail.com
